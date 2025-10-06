@@ -55,10 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.addEventListener('change', () => {
         const file = fileInput.files && fileInput.files[0];
         if (file) {
-            // Check file size (4MB limit for Vercel free tier compatibility)
-            const maxSize = 4 * 1024 * 1024; // 4MB in bytes
+            // Check file size (9MB limit for Netlify compatibility)
+            const maxSize = 9 * 1024 * 1024; // 9MB in bytes
             if (file.size > maxSize) {
-                fileNameSpan.textContent = 'File too large (max 4MB)';
+                fileNameSpan.textContent = 'File too large (max 9MB)';
                 fileNameSpan.style.color = 'var(--error-color)';
                 fileInput.value = ''; // Clear the input
                 return;
@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Handle specific error types
             if (err.message && err.message.includes('413')) {
-                uploadStatus.textContent = 'File too large. Please choose a smaller file (max 4MB).';
+                uploadStatus.textContent = 'File too large. Please choose a smaller file (max 9MB).';
             } else if (err.message && err.message.includes('Request Entity')) {
                 uploadStatus.textContent = 'Upload failed. File may be too large or corrupted.';
             } else {
