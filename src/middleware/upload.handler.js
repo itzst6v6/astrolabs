@@ -4,12 +4,12 @@ const multer = require('multer');
 // Files are stored in memory instead of on disk
 const storage = multer.memoryStorage();
 
-// Vercel serverless functions have payload limits (typically 4.5MB for free tier)
-// Set file size limit to 20MB to be more practical for file hosting
+// Vercel free tier has ~4.5MB payload limit for serverless functions
+// Set file size limit to 4MB to stay well within limits
 const upload = multer({
   storage: storage,
   limits: {
-    fileSize: 20 * 1024 * 1024, // 20MB limit (more practical)
+    fileSize: 4 * 1024 * 1024, // 4MB limit (safe for free tier)
     files: 1 // Only allow 1 file at a time
   }
 }).single('file');
