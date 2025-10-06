@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'file-card';
             // FIXED: Replaced the broken string with a valid template literal (using backticks ``)
             // and correctly inserted the file name and token variables.
-            const fullUrl = `${window.location.origin}/api/v2/download/${file.token}`;
+            const fullUrl = `${window.location.origin}/.netlify/functions/download/${file.token}`;
             card.innerHTML = `
                 <div class="file-info">
                     <div class="file-name">${file.name}</div>
@@ -55,10 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.addEventListener('change', () => {
         const file = fileInput.files && fileInput.files[0];
         if (file) {
-            // Check file size (9MB limit for Netlify compatibility)
-            const maxSize = 9 * 1024 * 1024; // 9MB in bytes
+            // Check file size (4MB limit for Vercel free tier compatibility)
+            const maxSize = 4 * 1024 * 1024; // 4MB in bytes
             if (file.size > maxSize) {
-                fileNameSpan.textContent = 'File too large (max 9MB)';
+                fileNameSpan.textContent = 'File too large (max 4MB)';
                 fileNameSpan.style.color = 'var(--error-color)';
                 fileInput.value = ''; // Clear the input
                 return;
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error('No file selected.');
         }
 
-        fetch('/api/v2/upload', {
+        fetch('/.netlify/functions/upload', {
             method: 'POST',
             body: formData
         })
@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Handle specific error types
             if (err.message && err.message.includes('413')) {
-                uploadStatus.textContent = 'File too large. Please choose a smaller file (max 9MB).';
+                uploadStatus.textContent = 'File too large. Please choose a smaller file (max 4MB).';
             } else if (err.message && err.message.includes('Request Entity')) {
                 uploadStatus.textContent = 'Upload failed. File may be too large or corrupted.';
             } else {
@@ -135,11 +135,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (action === 'download') {
             // FIXED: Replaced the broken line with a valid template literal for the URL.
-            window.location.href = `/api/v2/download/${token}`;
+            window.location.href = `/.netlify/functions/download/${token}`;
         }
         if (action === 'copy') {
             // Copy full download URL instead of just the token
-            const fullUrl = `${window.location.origin}/api/v2/download/${token}`;
+            const fullUrl = `${window.location.origin}/.netlify/functions/download/${token}`;
             navigator.clipboard.writeText(fullUrl).then(() => {
                 const originalText = e.target.textContent;
                 e.target.textContent = 'Copied!';
