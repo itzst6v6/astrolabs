@@ -37,8 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = 'file-card';
 
-            // FIXED: Added the complete HTML structure for the file card.
-            // This now includes file information and action buttons.
+            // FIXED: Closed the template literal with a backtick and moved appendChild outside.
             card.innerHTML = `
                 <div class="file-info">
                     <span class="file-name">${file.name}</span>
@@ -53,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Configuration Fetching ---
-    // FIXED: Moved getConfig to the top-level scope for better organization.
     async function getConfig() {
         try {
             const response = await fetch('/api/v2/debug/platform');
@@ -61,14 +59,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const config = await response.json();
             return {
                 maxSize: config.limits.fileSizeBytes,
-                maxSizeText: config.limits.fileSize
+                maxSizeText: config.limits.fileSize,
+                platform: config.name,
+                apiBasePath: config.apiBasePath || '/api'
             };
         } catch (error) {
             console.warn('Could not fetch config, using defaults:', error);
             // Fallback to a conservative 4MB limit
             return {
                 maxSize: 4 * 1024 * 1024,
-                maxSizeText: '4MB'
+                maxSizeText: '4MB',
+                platform: 'Unknown',
+                apiBasePath: '/api'
             };
         }
     }
@@ -78,11 +80,17 @@ document.addEventListener('DOMContentLoaded', () => {
     getConfig().then(config => {
         currentConfig = config;
         console.log('Platform config loaded:', config);
+
+        // Update UI with platform info if needed
+        const platformInfo = document.getElementById('platform-info');
+        if (platformInfo) {
+            platformInfo.textContent = `Running on ${config.platform} (${config.maxSizeText} limit)`;
+        }
     });
 
     // --- Event Listeners for Upload and File Actions ---
     fileInput.addEventListener('change', () => {
-        const file = fileInput.files ? fileInput.files[0] : null;
+        const file = fileInput.files ? fileInput.files : null;
         if (file) {
             // Use dynamic config if available, otherwise fallback
             const maxSize = currentConfig ? currentConfig.maxSize : 4 * 1024 * 1024;
@@ -104,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const file = fileInput.files ? fileInput.files[0] : null;
+        const file = fileInput.files ? fileInput.files : null;
         if (!file) {
             uploadStatus.textContent = 'Please select a file to upload.';
             uploadStatus.style.color = 'red';
@@ -117,7 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('file', file);
 
         try {
-            const response = await fetch('/.netlify/functions/upload', {
+            const uploadUrl = `${currentConfig.apiBasePath}/upload`; // Use dynamic API path
+            const response = await fetch(uploadUrl, {
                 method: 'POST',
                 body: formData
             });
@@ -163,12 +172,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!action || !token) return;
 
+        const downloadUrl = `${currentConfig.apiBasePath || ''}/download/${token}`;
+
         if (action === 'download') {
-            window.location.href = `/.netlify/functions/download/${token}`;
+            window.location.href = downloadUrl;
         }
 
         if (action === 'copy') {
-            const fullUrl = `${window.location.origin}/.netlify/functions/download/${token}`;
+            const fullUrl = `${window.location.origin}${downloadUrl}`;
             navigator.clipboard.writeText(fullUrl).then(() => {
                 const originalText = targetButton.textContent;
                 targetButton.textContent = 'Copied!';
