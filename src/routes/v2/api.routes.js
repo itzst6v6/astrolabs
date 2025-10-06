@@ -8,6 +8,7 @@ const router = express.Router();
 // PUBLIC ENDPOINTS - No authentication required
 router.post('/upload', uploadHandler, fileController.upload);
 router.get('/download/:publicToken', fileController.download);
+router.delete('/delete/:publicToken', fileController.deleteFile);
 
 // Debug endpoint to check platform configuration
 router.get('/debug/platform', debugController.getPlatformInfo);

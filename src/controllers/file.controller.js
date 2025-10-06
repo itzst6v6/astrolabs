@@ -23,4 +23,22 @@ const download = async (req, res) => {
   }
 };
 
-module.exports = { upload, download };
+const deleteFile = async (req, res) => {
+  try {
+    const publicToken = req.params.publicToken;
+    if (!publicToken) {
+      return res.status(400).json({ success: false, message: 'Token required' });
+    }
+
+    await fileService.deleteFile(publicToken);
+    res.json({ success: true, message: 'File deleted successfully' });
+  } catch (e) {
+    if (e.message === 'File not found') {
+      res.status(404).json({ success: false, message: 'File not found' });
+    } else {
+      res.status(500).json({ success: false, message: 'Could not delete file' });
+    }
+  }
+};
+
+module.exports = { upload, download, deleteFile };

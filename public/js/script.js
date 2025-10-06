@@ -18,10 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
         return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
     }
 
-    function saveFileHistory(fileData) {
+    function removeFileFromHistory(tokenToRemove) {
         const history = getFileHistory();
-        history.unshift(fileData); // Add new file to the beginning
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+        const filteredHistory = history.filter(file => file.token !== tokenToRemove);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(filteredHistory));
     }
 
     // --- UI Rendering ---
@@ -31,13 +31,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (history.length === 0) {
             fileListContainer.innerHTML = '<div style="text-align:center;color:var(--subtle-text-color);padding:20px;">Your file history is empty.</div>';
             return;
-        }
 
         history.forEach(file => {
             const card = document.createElement('div');
             card.className = 'file-card';
 
-            // FIXED: Closed the template literal with a backtick and moved appendChild outside.
+            // FIXED: Added the complete HTML structure for the file card.
+            // This now includes file information and action buttons.
             card.innerHTML = `
                 <div class="file-info">
                     <span class="file-name">${file.name}</span>
@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="file-actions">
                     <button class="btn" data-action="copy" data-token="${file.token}">Copy Link</button>
                     <button class="btn btn-primary" data-action="download" data-token="${file.token}">Download</button>
+                    <button class="btn btn-danger" data-action="delete" data-token="${file.token}">Delete</button>
                 </div>
             `;
             fileListContainer.appendChild(card);
@@ -90,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners for Upload and File Actions ---
     fileInput.addEventListener('change', () => {
-        const file = fileInput.files ? fileInput.files : null;
+        const file = fileInput.files && fileInput.files[0]; // Get first file
         if (file) {
             // Use dynamic config if available, otherwise fallback
             const maxSize = currentConfig ? currentConfig.maxSize : 4 * 1024 * 1024;
@@ -112,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const file = fileInput.files ? fileInput.files : null;
+        const file = fileInput.files && fileInput.files[0]; // Get first file
         if (!file) {
             uploadStatus.textContent = 'Please select a file to upload.';
             uploadStatus.style.color = 'red';
@@ -125,7 +126,12 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('file', file);
 
         try {
-            const uploadUrl = `${currentConfig.apiBasePath}/upload`; // Use dynamic API path
+            // Wait for config to load if not already loaded
+            if (!currentConfig) {
+                currentConfig = await getConfig();
+            }
+
+            const uploadUrl = `${currentConfig.apiBasePath}/v2/upload`;
             const response = await fetch(uploadUrl, {
                 method: 'POST',
                 body: formData
@@ -163,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    fileListContainer.addEventListener('click', e => {
+    fileListContainer.addEventListener('click', async (e) => {
         const targetButton = e.target.closest('button');
         if (!targetButton) return;
 
@@ -172,24 +178,50 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!action || !token) return;
 
-        const downloadUrl = `${currentConfig.apiBasePath || ''}/download/${token}`;
+        // Wait for config to load if not already loaded
+        if (!currentConfig) {
+            currentConfig = await getConfig();
+        }
+
+        const downloadUrl = `${currentConfig.apiBasePath || ''}/v2/download/${token}`;
 
         if (action === 'download') {
             window.location.href = downloadUrl;
         }
 
-        if (action === 'copy') {
-            const fullUrl = `${window.location.origin}${downloadUrl}`;
-            navigator.clipboard.writeText(fullUrl).then(() => {
-                const originalText = targetButton.textContent;
-                targetButton.textContent = 'Copied!';
-                setTimeout(() => {
-                    targetButton.textContent = originalText;
-                }, 2000);
-            }).catch(err => {
-                console.error('Failed to copy URL:', err);
-                alert('Failed to copy link to clipboard.');
-            });
+        if (action === 'delete') {
+            if (confirm('Are you sure you want to delete this file? This action cannot be undone.')) {
+                try {
+                    const deleteUrl = `${currentConfig.apiBasePath}/v2/delete/${token}`;
+                    const response = await fetch(deleteUrl, {
+                        method: 'DELETE'
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        try {
+                            const errorJson = JSON.parse(errorText);
+                            throw new Error(errorJson.message || `HTTP ${response.status}: Delete failed`);
+                        } catch {
+                            throw new Error(`HTTP ${response.status}: ${errorText || 'Delete failed'}`);
+                        }
+                    }
+
+                    const result = await response.json();
+                    if (result.success) {
+                        // Remove from local storage
+                        removeFileFromHistory(token);
+                        // Re-render the file list
+                        renderFileHistory();
+                        alert('File deleted successfully!');
+                    } else {
+                        throw new Error(result.message || 'Delete failed');
+                    }
+                } catch (err) {
+                    console.error('Delete error:', err);
+                    alert('Failed to delete file: ' + err.message);
+                }
+            }
         }
     });
 
