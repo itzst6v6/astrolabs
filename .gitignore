@@ -85,3 +85,5 @@ Thumbs.db
 # Upload directories (if any)
 uploads/
 temp/
+
+.vercel

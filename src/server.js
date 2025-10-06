@@ -1,8 +1,14 @@
 const app = require('./app');
 const config = require('./config');
 
-const port = config.port;
+// For Vercel serverless deployment, export the app directly
+// instead of listening on a port
+module.exports = app;
 
-app.listen(port, () => {
-  console.log(`Server v4 is running securely on http://localhost:${port}`);
-});
+// For local development, only listen if not in serverless environment
+if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '1') {
+  const port = config.port || 3000;
+  app.listen(port, () => {
+    console.log(`Server v4 is running securely on http://localhost:${port}`);
+  });
+}
