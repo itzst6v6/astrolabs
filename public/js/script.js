@@ -55,8 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.addEventListener('change', () => {
         const file = fileInput.files && fileInput.files[0];
         if (file) {
-            // Check file size (4MB limit for Vercel free tier compatibility)
-            const maxSize = 4 * 1024 * 1024; // 4MB in bytes
+            // Get platform-specific file size limit
+    // For now, use conservative estimate - this could be made dynamic
+    const maxSize = 4 * 1024 * 1024; // 4MB (will be made dynamic later)
             if (file.size > maxSize) {
                 fileNameSpan.textContent = 'File too large (max 4MB)';
                 fileNameSpan.style.color = 'var(--error-color)';
