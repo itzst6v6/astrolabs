@@ -1,23 +1,64 @@
-// In-memory storage for serverless demo (replaces file system operations)
-const memoryStorage = new Map();
+// Persistent storage for serverless demo - uses JSON file to persist data
+const fs = require('fs').promises;
+const path = require('path');
+
+const STORAGE_FILE = path.join(__dirname, '../../data/storage.json');
+
+// In-memory cache for faster access
+let storageCache = new Map();
+
+const loadStorage = async () => {
+  try {
+    if (storageCache.size > 0) return storageCache;
+
+    const data = await fs.readFile(STORAGE_FILE, 'utf8');
+    const storage = JSON.parse(data);
+
+    // Convert back to Map
+    storageCache = new Map(Object.entries(storage));
+    return storageCache;
+  } catch (error) {
+    // If file doesn't exist, start with empty storage
+    storageCache = new Map();
+    return storageCache;
+  }
+};
+
+const saveStorage = async () => {
+  try {
+    // Ensure data directory exists
+    await fs.mkdir(path.dirname(STORAGE_FILE), { recursive: true });
+
+    // Convert Map to object for JSON serialization
+    const storageObj = Object.fromEntries(storageCache);
+    await fs.writeFile(STORAGE_FILE, JSON.stringify(storageObj, null, 2));
+  } catch (error) {
+    console.error('Error saving storage:', error);
+    throw error;
+  }
+};
 
 const processAndEncryptFile = async (publicToken, fileBuffer, originalName) => {
   try {
-    // For serverless demo, we'll simulate file storage in memory
-    // In production, you'd use cloud storage like AWS S3
-
-    // Use the file buffer directly (from multer memory storage)
-    const fileContent = fileBuffer;
+    // Load existing storage
+    await loadStorage();
 
     // Encrypt the content
     const encryption = require('./encryption.service');
-    const encrypted = encryption.encrypt(fileContent);
+    const encrypted = encryption.encrypt(fileBuffer);
 
-    // Store in memory (for demo purposes)
-    memoryStorage.set(publicToken, {
-      encrypted: encrypted,
-      metadata: { original_filename: originalName }
+    // Convert encrypted buffer to base64 for JSON storage
+    const encryptedBase64 = encrypted.toString('base64');
+
+    // Store in persistent storage
+    storageCache.set(publicToken, {
+      encrypted: encryptedBase64,
+      metadata: { original_filename: originalName },
+      created_at: new Date().toISOString()
     });
+
+    // Save to disk
+    await saveStorage();
 
     return { success: true };
   } catch (error) {
@@ -28,16 +69,23 @@ const processAndEncryptFile = async (publicToken, fileBuffer, originalName) => {
 
 const retrieveAndDecryptFile = async (publicToken) => {
   try {
-    // Check if file exists in memory storage
-    if (!memoryStorage.has(publicToken)) {
+    // Load existing storage
+    await loadStorage();
+
+    // Check if file exists
+    if (!storageCache.has(publicToken)) {
       throw new Error('File not found');
     }
 
-    const stored = memoryStorage.get(publicToken);
+    const stored = storageCache.get(publicToken);
+
+    // Convert base64 back to buffer
+    const encryptedBuffer = Buffer.from(stored.encrypted, 'base64');
+
     const encryption = require('./encryption.service');
 
     // Decrypt the content
-    const decrypted = encryption.decrypt(stored.encrypted);
+    const decrypted = encryption.decrypt(encryptedBuffer);
 
     return {
       decryptedContent: decrypted,
