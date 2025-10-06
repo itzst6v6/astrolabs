@@ -1,14 +1,13 @@
 // In-memory storage for serverless demo (replaces file system operations)
 const memoryStorage = new Map();
 
-const processAndEncryptFile = async (publicToken, tempPath, originalName) => {
+const processAndEncryptFile = async (publicToken, fileBuffer, originalName) => {
   try {
     // For serverless demo, we'll simulate file storage in memory
     // In production, you'd use cloud storage like AWS S3
-    const fs = require('fs').promises;
 
-    // Read the uploaded file (this works in serverless for the initial upload)
-    const fileContent = await fs.readFile(tempPath);
+    // Use the file buffer directly (from multer memory storage)
+    const fileContent = fileBuffer;
 
     // Encrypt the content
     const encryption = require('./encryption.service');
@@ -19,9 +18,6 @@ const processAndEncryptFile = async (publicToken, tempPath, originalName) => {
       encrypted: encrypted,
       metadata: { original_filename: originalName }
     });
-
-    // Clean up temp file
-    await fs.unlink(tempPath);
 
     return { success: true };
   } catch (error) {

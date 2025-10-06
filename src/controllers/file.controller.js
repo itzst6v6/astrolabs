@@ -1,12 +1,12 @@
 const fileService = require('../services/file.service');
 const tokenService = require('../services/token.service');
-const path = require('path');
 
 const upload = async (req, res) => {
   if (!req.file) return res.status(400).json({ success: false, message: 'No file selected.' });
   try {
     const publicToken = tokenService.generatePublicToken();
-    await fileService.processAndEncryptFile(publicToken, req.file.path, req.file.originalname);
+    // Pass file buffer instead of file path
+    await fileService.processAndEncryptFile(publicToken, req.file.buffer, req.file.originalname);
     res.status(201).json({ success: true, publicToken });
   } catch (e) { res.status(500).json({ success: false, message: 'Could not process file.' }); }
 };
