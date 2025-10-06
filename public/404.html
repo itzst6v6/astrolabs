@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found | AstroLab Vault</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+</head>
+<body>
+    <div id="overlay" class="overlay"></div>
+
+    <nav id="navDrawer" class="nav-drawer">
+        <div class="nav-header">
+            <img src="https://i.imgur.com/8qkX8aD.png" alt="Icon" class="nav-avatar">
+            <div class="nav-username">AstroLab Vault</div>
+        </div>
+        <ul class="nav-list">
+            <li><i class="fa-solid fa-upload"></i> File Storage</li>
+            <li><i class="fa-solid fa-tools"></i> Tools</li>
+        </ul>
+    </nav>
+
+    <div class="app-content">
+        <header class="app-toolbar">
+            <button id="hamburgerBtn" class="hamburger-btn"><i class="fa-solid fa-bars"></i></button>
+            <h1 class="toolbar-title">AstroLab Vault</h1>
+        </header>
+
+        <main class="app-main">
+            <div class="card" style="text-align: center; max-width: 600px; margin: 0 auto;">
+                <div style="font-size: 4rem; color: var(--accent-color); margin-bottom: 1rem;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h1 style="color: var(--error-color); margin-bottom: 1rem;">404 - Page Not Found</h1>
+                <p style="color: var(--subtle-text-color); font-size: 1.1rem; margin-bottom: 2rem;">
+                    The page you're looking for doesn't exist or may have been moved.
+                </p>
+
+                <div style="margin-bottom: 2rem;">
+                    <a href="/" class="btn" style="margin-right: 1rem;">
+                        <i class="fas fa-home"></i> Go Home
+                    </a>
+                    <button onclick="history.back()" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Go Back
+                    </button>
+                </div>
+
+                <div style="border-top: 1px solid var(--divider-color); padding-top: 2rem; color: var(--subtle-text-color);">
+                    <p>If you believe this is an error, please contact support or try refreshing the page.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/script.js"></script>
+</body>
+</html>

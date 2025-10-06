@@ -18,4 +18,9 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
+// Catch-all handler: serve 404 page for any unmatched routes
+app.get('*', (req, res) => {
+    res.status(404).sendFile(path.join(__dirname, '../public', '404.html'));
+});
+
 module.exports = app;

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Not Found | AstroLab Vault</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+</head>
+<body>
+    <div id="overlay" class="overlay"></div>
+
+    <nav id="navDrawer" class="nav-drawer">
+        <div class="nav-header">
+            <img src="https://i.imgur.com/8qkX8aD.png" alt="Icon" class="nav-avatar">
+            <div class="nav-username">AstroLab Vault</div>
+        </div>
+        <ul class="nav-list">
+            <li><i class="fa-solid fa-upload"></i> File Storage</li>
+            <li><i class="fa-solid fa-tools"></i> Tools</li>
+        </ul>
+    </nav>
+
+    <div class="app-content">
+        <header class="app-toolbar">
+            <button id="hamburgerBtn" class="hamburger-btn"><i class="fa-solid fa-bars"></i></button>
+            <h1 class="toolbar-title">AstroLab Vault</h1>
+        </header>
+
+        <main class="app-main">
+            <div class="card" style="text-align: center; max-width: 600px; margin: 0 auto;">
+                <div style="font-size: 4rem; color: var(--error-color); margin-bottom: 1rem;">
+                    <i class="fas fa-file-times"></i>
+                </div>
+                <h1 style="color: var(--error-color); margin-bottom: 1rem;">File Not Found</h1>
+                <p style="color: var(--subtle-text-color); font-size: 1.1rem; margin-bottom: 2rem;">
+                    The file you're trying to download doesn't exist or has been removed.
+                </p>
+
+                <div style="background: var(--surface-color); padding: 1rem; border-radius: 8px; margin-bottom: 2rem;">
+                    <p style="margin: 0; font-family: monospace; color: var(--text-color);">
+                        This could happen if:
+                    </p>
+                    <ul style="text-align: left; margin: 0.5rem 0 0 0; color: var(--subtle-text-color);">
+                        <li>• The file was deleted or moved</li>
+                        <li>• The download link expired</li>
+                        <li>• The file token is incorrect</li>
+                        <li>• The file was never uploaded</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 2rem;">
+                    <a href="/" class="btn" style="margin-right: 1rem;">
+                        <i class="fas fa-upload"></i> Upload New File
+                    </a>
+                    <a href="/" class="btn btn-secondary">
+                        <i class="fas fa-list"></i> View My Files
+                    </a>
+                </div>
+
+                <div style="border-top: 1px solid var(--divider-color); padding-top: 2rem; color: var(--subtle-text-color);">
+                    <p>Need help? The file might have expired or been removed for security reasons.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/script.js"></script>
+</body>
+</html>

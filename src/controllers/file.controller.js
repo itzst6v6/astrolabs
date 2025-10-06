@@ -1,5 +1,6 @@
 const fileService = require('../services/file.service');
 const tokenService = require('../services/token.service');
+const path = require('path');
 
 const upload = async (req, res) => {
   if (!req.file) return res.status(400).json({ success: false, message: 'No file selected.' });
@@ -16,7 +17,10 @@ const download = async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="${metadata.original_filename}"`);
     res.setHeader('Content-Type', 'application/octet-stream');
     res.send(decryptedContent);
-  } catch (e) { res.status(404).json({ success: false, message: 'File not found.' }); }
+  } catch (e) {
+    // Redirect to file not found page instead of returning JSON
+    res.redirect('/file-not-found.html');
+  }
 };
 
 module.exports = { upload, download };
