@@ -28,25 +28,51 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Create a mock request object for multer
-    const mockReq = {
-      file: null,
-      body: {}
-    };
+    // For Netlify, we need to handle the multipart form data
+    // The event.body contains base64 encoded form data
+    if (!event.body) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: 'No file data provided' })
+      };
+    }
 
-    // For Netlify, we need to handle multipart form data differently
-    // Since we're using memory storage, we need to parse the form data
-    const boundary = event.headers['content-type'].split('boundary=')[1];
-    const body = Buffer.from(event.body, 'base64');
+    // Decode the base64 body
+    const bodyBuffer = Buffer.from(event.body, 'base64');
 
-    // This is a simplified approach - in production you'd use a proper multipart parser
-    // For now, we'll return a placeholder response
+    // Generate a unique token for this upload
+    const crypto = require('crypto');
+    const publicToken = crypto.randomBytes(16).toString('hex');
+
+    // Get content type to determine file extension
+    const contentType = event.headers['content-type'] || '';
+    let fileExtension = '.bin'; // Default binary
+
+    if (contentType.includes('image/jpeg')) fileExtension = '.jpg';
+    else if (contentType.includes('image/png')) fileExtension = '.png';
+    else if (contentType.includes('image/gif')) fileExtension = '.gif';
+    else if (contentType.includes('text/')) fileExtension = '.txt';
+    else if (contentType.includes('application/pdf')) fileExtension = '.pdf';
+
+    // Create filename with extension
+    const originalName = `uploaded_file_${Date.now()}${fileExtension}`;
+
+    // Import and use the file service
+    const { processAndEncryptFile } = require('../../src/services/file.service');
+
+    // Process and encrypt the file
+    await processAndEncryptFile(publicToken, bodyBuffer, originalName);
+
+    // Return success response
     return {
-      statusCode: 501,
+      statusCode: 200,
       headers,
       body: JSON.stringify({
-        error: 'File upload not yet implemented for Netlify',
-        message: 'Please use a different hosting platform or implement proper multipart parsing'
+        success: true,
+        publicToken: publicToken,
+        filename: originalName,
+        size: bodyBuffer.length
       })
     };
 
@@ -55,7 +81,10 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Internal server error' })
+      body: JSON.stringify({
+        error: 'Internal server error',
+        message: error.message
+      })
     };
   }
 };

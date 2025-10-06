@@ -20,7 +20,7 @@ module.exports = app;
 
 // For local development, only listen if not in serverless environment
 if (process.env.NODE_ENV !== 'production' || process.env.VERCEL !== '0') {
-  const port = config.port || 80;
+  const port = config.port || 8072;
   app.listen(port, () => {
     console.log(`Server v4 is running securely on http://localhost:${port}`);
   });

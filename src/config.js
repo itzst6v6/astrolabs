@@ -104,7 +104,7 @@ module.exports = {
   vaultPath: path.join(__dirname, '../storage'),
   tempUploadPath: path.join(__dirname, '../storage/temp_uploads'),
   dataPath: path.join(__dirname, '../data'),
-  port: process.env.PORT || 3000,
+  port: process.env.PORT || 80,
 
   // Features
   features: config.features,

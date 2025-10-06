@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function saveFileHistory(fileData) {
         const history = getFileHistory();
-        history.unshift(fileData);
+        history.unshift(fileData); // Add new file to the beginning
         localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
     }
 
@@ -36,35 +36,64 @@ document.addEventListener('DOMContentLoaded', () => {
         history.forEach(file => {
             const card = document.createElement('div');
             card.className = 'file-card';
-            // FIXED: Replaced the broken string with a valid template literal (using backticks ``)
-            // and correctly inserted the file name and token variables.
-            const fullUrl = `${window.location.origin}/.netlify/functions/download/${file.token}`;
+
+            // FIXED: Added the complete HTML structure for the file card.
+            // This now includes file information and action buttons.
             card.innerHTML = `
                 <div class="file-info">
-                    <div class="file-name">${file.name}</div>
-                    <div class="file-token" title="Click Copy to copy full download URL">Token: ${file.token}</div>
+                    <span class="file-name">${file.name}</span>
                 </div>
-                <button class="btn btn-small" data-action="copy" data-token="${file.token}" title="Copy full download URL">Copy</button>
-                <button class="btn btn-small" data-action="download" data-token="${file.token}" style="background-color:var(--accent-color);" title="Download file directly">DL</button>
+                <div class="file-actions">
+                    <button class="btn" data-action="copy" data-token="${file.token}">Copy Link</button>
+                    <button class="btn btn-primary" data-action="download" data-token="${file.token}">Download</button>
+                </div>
             `;
             fileListContainer.appendChild(card);
         });
     }
 
+    // --- Configuration Fetching ---
+    // FIXED: Moved getConfig to the top-level scope for better organization.
+    async function getConfig() {
+        try {
+            const response = await fetch('/api/v2/debug/platform');
+            if (!response.ok) throw new Error('Failed to fetch config');
+            const config = await response.json();
+            return {
+                maxSize: config.limits.fileSizeBytes,
+                maxSizeText: config.limits.fileSize
+            };
+        } catch (error) {
+            console.warn('Could not fetch config, using defaults:', error);
+            // Fallback to a conservative 4MB limit
+            return {
+                maxSize: 4 * 1024 * 1024,
+                maxSizeText: '4MB'
+            };
+        }
+    }
+
+    // Initialize config on page load
+    let currentConfig = null;
+    getConfig().then(config => {
+        currentConfig = config;
+        console.log('Platform config loaded:', config);
+    });
+
     // --- Event Listeners for Upload and File Actions ---
     fileInput.addEventListener('change', () => {
-        const file = fileInput.files && fileInput.files[0];
+        const file = fileInput.files ? fileInput.files[0] : null;
         if (file) {
-            // Get platform-specific file size limit
-    // For now, use conservative estimate - this could be made dynamic
-    const maxSize = 4 * 1024 * 1024; // 4MB (will be made dynamic later)
+            // Use dynamic config if available, otherwise fallback
+            const maxSize = currentConfig ? currentConfig.maxSize : 4 * 1024 * 1024;
+            const maxSizeText = currentConfig ? currentConfig.maxSizeText : '4MB';
+
             if (file.size > maxSize) {
-                fileNameSpan.textContent = 'File too large (max 4MB)';
+                fileNameSpan.textContent = `File too large (max ${maxSizeText})`;
                 fileNameSpan.style.color = 'var(--error-color)';
                 fileInput.value = ''; // Clear the input
                 return;
             }
-
             fileNameSpan.textContent = file.name;
             fileNameSpan.style.color = ''; // Reset color
         } else {
@@ -73,85 +102,82 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    uploadForm.addEventListener('submit', e => {
+    uploadForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        uploadStatus.textContent = 'Uploading...';
-        const formData = new FormData();
-        if (fileInput.files && fileInput.files[0]) {
-            formData.append('file', fileInput.files[0]);
-        } else {
-            throw new Error('No file selected.');
+        const file = fileInput.files ? fileInput.files[0] : null;
+        if (!file) {
+            uploadStatus.textContent = 'Please select a file to upload.';
+            uploadStatus.style.color = 'red';
+            return;
         }
 
-        fetch('/.netlify/functions/upload', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
+        uploadStatus.textContent = 'Uploading...';
+        uploadStatus.style.color = '';
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/.netlify/functions/upload', {
+                method: 'POST',
+                body: formData
+            });
+
             if (!response.ok) {
-                // Handle non-JSON error responses (like 413 errors)
+                // Handle non-JSON error responses gracefully
                 if (response.status === 413) {
-                    throw new Error('413: File too large. Please choose a smaller file (max 4MB).');
+                    throw new Error(`413: File is too large. The server limit is ${currentConfig?.maxSizeText || '4MB'}.`);
                 }
-                // Try to parse JSON error, but handle cases where it's not JSON
-                return response.text().then(text => {
-                    try {
-                        return JSON.parse(text);
-                    } catch {
-                        throw new Error(`HTTP ${response.status}: ${text || 'Unknown error'}`);
-                    }
-                }).then(err => Promise.reject(err));
+                const errorText = await response.text();
+                try {
+                    // Try to parse as JSON for a more detailed error message
+                    const errorJson = JSON.parse(errorText);
+                    throw new Error(errorJson.message || `HTTP ${response.status}: An unknown error occurred.`);
+                } catch {
+                    // Fallback if the error response is not JSON
+                    throw new Error(`HTTP ${response.status}: ${errorText || 'An unknown error occurred.'}`);
+                }
             }
-            return response.json();
-        })
-        .then(data => {
+
+            const data = await response.json();
             uploadStatus.style.color = 'green';
             uploadStatus.textContent = 'Upload successful!';
-            saveFileHistory({ name: fileInput.files[0].name, token: data.publicToken });
+            saveFileHistory({ name: file.name, token: data.publicToken });
             renderFileHistory();
             uploadForm.reset();
             fileNameSpan.textContent = 'Choose a file...';
-        })
-        .catch(err => {
+
+        } catch (err) {
             uploadStatus.style.color = 'red';
-
-            // Handle specific error types
-            if (err.message && err.message.includes('413')) {
-                uploadStatus.textContent = 'File too large. Please choose a smaller file (max 4MB).';
-            } else if (err.message && err.message.includes('Request Entity')) {
-                uploadStatus.textContent = 'Upload failed. File may be too large or corrupted.';
-            } else {
-                uploadStatus.textContent = err.message || 'Upload failed. Please try again.';
-            }
-
+            uploadStatus.textContent = err.message || 'Upload failed. Please try again.';
             console.error('Upload error:', err);
-        });
+        }
     });
 
+
     fileListContainer.addEventListener('click', e => {
-        const action = e.target.dataset.action;
-        const token = e.target.dataset.token;
+        const targetButton = e.target.closest('button');
+        if (!targetButton) return;
+
+        const action = targetButton.dataset.action;
+        const token = targetButton.dataset.token;
 
         if (!action || !token) return;
 
         if (action === 'download') {
-            // FIXED: Replaced the broken line with a valid template literal for the URL.
             window.location.href = `/.netlify/functions/download/${token}`;
         }
+
         if (action === 'copy') {
-            // Copy full download URL instead of just the token
             const fullUrl = `${window.location.origin}/.netlify/functions/download/${token}`;
             navigator.clipboard.writeText(fullUrl).then(() => {
-                const originalText = e.target.textContent;
-                e.target.textContent = 'Copied!';
-                setTimeout(() => { e.target.textContent = originalText; }, 2000);
+                const originalText = targetButton.textContent;
+                targetButton.textContent = 'Copied!';
+                setTimeout(() => {
+                    targetButton.textContent = originalText;
+                }, 2000);
             }).catch(err => {
                 console.error('Failed to copy URL:', err);
-                // Fallback to copying just the token if clipboard fails
-                navigator.clipboard.writeText(token).then(() => {
-                    e.target.textContent = 'Copied!';
-                    setTimeout(() => { e.target.textContent = originalText; }, 2000);
-                });
+                alert('Failed to copy link to clipboard.');
             });
         }
     });
