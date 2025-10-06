@@ -53,7 +53,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Listeners for Upload and File Actions ---
     fileInput.addEventListener('change', () => {
-        fileNameSpan.textContent = fileInput.files && fileInput.files[0] ? fileInput.files[0].name : 'Choose a file...';
+        const file = fileInput.files && fileInput.files[0];
+        if (file) {
+            // Check file size (4MB limit to match serverless limits)
+            const maxSize = 4 * 1024 * 1024; // 4MB in bytes
+            if (file.size > maxSize) {
+                fileNameSpan.textContent = 'File too large (max 4MB)';
+                fileNameSpan.style.color = 'var(--error-color)';
+                fileInput.value = ''; // Clear the input
+                return;
+            }
+
+            fileNameSpan.textContent = file.name;
+            fileNameSpan.style.color = ''; // Reset color
+        } else {
+            fileNameSpan.textContent = 'Choose a file...';
+            fileNameSpan.style.color = '';
+        }
     });
 
     uploadForm.addEventListener('submit', e => {
@@ -86,7 +102,16 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(err => {
             uploadStatus.style.color = 'red';
-            uploadStatus.textContent = err.message || 'Upload failed. Please try again.';
+
+            // Handle specific error types
+            if (err.message && err.message.includes('413')) {
+                uploadStatus.textContent = 'File too large. Please choose a smaller file (max 4MB).';
+            } else if (err.message && err.message.includes('Request Entity')) {
+                uploadStatus.textContent = 'Upload failed. File may be too large or corrupted.';
+            } else {
+                uploadStatus.textContent = err.message || 'Upload failed. Please try again.';
+            }
+
             console.error('Upload error:', err);
         });
     });
