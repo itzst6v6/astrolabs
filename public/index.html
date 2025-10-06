@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AstroLab Vault</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+</head>
+<body>
+    <div id="overlay" class="overlay"></div>
+
+    <nav id="navDrawer" class="nav-drawer">
+        <!-- MODIFIED: Replaced the dynamic username with a static header -->
+        <div class="nav-header">
+            <img src="https://i.imgur.com/8qkX8aD.png" alt="Icon" class="nav-avatar">
+            <div class="nav-username">AstroLab Vault</div>
+        </div>
+        <!-- MODIFIED: Removed the logout button and horizontal rule -->
+        <ul class="nav-list">
+            <li><i class="fa-solid fa-upload"></i> File Storage</li>
+            <li><i class="fa-solid fa-tools"></i> Tools</li>
+        </ul>
+    </nav>
+
+    <div class="app-content">
+        <header class="app-toolbar">
+            <button id="hamburgerBtn" class="hamburger-btn"><i class="fa-solid fa-bars"></i></button>
+            <h1 class="toolbar-title">AstroLab Vault</h1>
+        </header>
+
+        <main class="app-main">
+            <div class="card">
+                <h2>Upload New File</h2>
+                <form id="uploadForm">
+                    <input type="file" id="fileInput" class="file-input" required>
+                    <label for="fileInput" class="file-input-label">
+                        <i class="fa-solid fa-file-circle-plus"></i>
+                        <span id="fileName">Choose a file...</span>
+                    </label>
+                    <button type="submit" class="btn">Upload & Encrypt</button>
+                </form>
+                <div id="uploadStatus"></div>
+            </div>
+
+            <div class="file-history">
+                <h2>Your Files</h2>
+                <div id="fileListContainer"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- The simplified script.js (without login logic) will control this page -->
+    <script src="/js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+/* Import Google's Roboto font, the standard for Android */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+/* Define a color palette based on the Android UI screenshot */
+:root {
+  --toolbar-color: #2F3E46;       /* Dark grey-blue for the top bar */
+  --nav-header-color: #4CAF50;    /* Green for the navigation header */
+  --background-color: #ECEFF1;    /* Light grey for the app background */
+  --card-background: #FFFFFF;     /* Pure white for cards */
+  --accent-color: #448AFF;        /* A bright blue for buttons and highlights */
+  --text-color: #212121;          /* Primary dark text color */
+  --subtle-text-color: #757575;   /* Lighter grey for secondary text */
+}
+
+/* --- Base Layout & Typography --- */
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  margin: 0;
+  overflow-x: hidden; /* Prevents horizontal scrollbar when nav is out */
+}
+
+/* --- Application Toolbar (Top Bar) --- */
+.app-toolbar {
+  background-color: var(--toolbar-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  height: 56px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.toolbar-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.hamburger-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 12px;
+  margin-right: 16px;
+  line-height: 1;
+}
+
+/* --- Slide-Out Navigation Drawer --- */
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background-color: var(--card-background);
+  z-index: 200;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.2);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Dark overlay that appears over the content */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0,0,0,0.5);
+  opacity: 0;
+  visibility: hidden;
+  z-index: 150;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+/* When body has 'nav-open', show the drawer and overlay */
+body.nav-open .nav-drawer {
+  transform: translateX(0);
+}
+body.nav-open .overlay {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* --- Navigation Drawer Content --- */
+.nav-header {
+  background-color: var(--nav-header-color);
+  padding: 16px;
+  color: white;
+}
+
+.nav-avatar {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 8px;
+}
+
+.nav-username {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 8px 0;
+  margin: 0;
+}
+
+.nav-list li {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  font-weight: 500;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.nav-list li:hover {
+  background-color: #f0f0f0;
+}
+
+.nav-list li .fa-solid {
+  width: 24px;
+  margin-right: 24px;
+  color: var(--subtle-text-color);
+  text-align: center;
+}
+
+/* --- Main Content Area --- */
+.login-container,
+.app-main {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+  padding-top: 72px; /* 56px toolbar height + 16px margin */
+}
+
+.card {
+  background-color: var(--card-background);
+  border-radius: 4px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-top: 0;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+/* --- Form & Input Elements --- */
+.btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--accent-color);
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: background-color 0.2s;
+}
+
+.btn:hover {
+  filter: brightness(0.9);
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box; /* Ensures padding is included in the width */
+  font-size: 1rem;
+}
+
+.file-input {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+.file-input-label {
+  display: block;
+  padding: 24px;
+  border: 2px dashed #ccc;
+  border-radius: 4px;
+  text-align: center;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.file-input-label:hover {
+    background-color: #f5f5f5;
+    border-color: var(--accent-color);
+}
+
+.file-input-label .fa-solid {
+  margin-right: 8px;
+  color: var(--subtle-text-color);
+}
+
+/* --- File History List --- */
+.file-card {
+  background-color: #f9f9f9;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.file-info {
+  flex-grow: 1;
+  margin-right: 16px;
+  min-width: 0; /* Prevents long names from pushing buttons off-screen */
+}
+
+.file-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Adds "..." if filename is too long */
+}
+
+.file-token {
+  font-family: 'Courier New', monospace;
+  font-size: 0.8rem;
+  color: var(--subtle-text-color);
+  word-break: break-all;
+}
+
+.btn-small {
+  width: auto;
+  flex-shrink: 0; /* Prevents buttons from shrinking */
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  background-color: var(--subtle-text-color);
+  margin-left: 8px;
+}
+
+/* --- Status Messages --- */
+.login-status,
+#uploadStatus {
+  margin-top: 16px;
+  text-align: center;
+  font-weight: 500;
+}
